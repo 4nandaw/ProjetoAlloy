@@ -13,7 +13,9 @@ sig Perfil {
     ativo: one Bool
 }
 
-sig Post {}
+sig Post {
+    autor: one Usuario
+}
 
 fact "Usuário sem amizade com ele mesmo" {
     no u: Usuario | u in u.amizade
