@@ -34,16 +34,17 @@ fact "Usuário inativo = Perfis do usuario inativos" {
 }
 
 fact "Todo post está em exatamente um perfil" {
-    all p: Post | one pp: Perfil | p in pp.publicação
+    all pst: Post | one p: Perfil | pst in p.publicação
 }
 
 fact "Usuários inativos não devem ter amizades" {
     all u: Usuario | u.ativo = False implies no u.amizade
 }
 
-
 // fact "Um usuário pode publicar um post em seu perfil ou nos perfis de seus amigos" {
-//     all u: Usuario, p: Perfil, pp: Post | (pp in p.post) or (u in p.dono.amizade and pp in p.post)
+//     all u: Usuario, p: Perfil, pst: Post |
+//         (pst in p.publicação and pst.autor = p.dono) or
+//         (pst in p.dono.amizade.publicação and u in p.dono.amizade)
 // }
 
 
