@@ -1,6 +1,6 @@
 open util/boolean
 
-sig RedeSocial {}
+abstract sig RedeSocial {}
 
 sig Usuario {
     amizade: set Usuario,
@@ -41,10 +41,17 @@ fact "Usuários inativos não devem ter amizades" {
     all u: Usuario | u.ativo = False implies no u.amizade
 }
 
-// fact "Um usuário pode publicar um post em seu perfil ou nos perfis de seus amigos" {
-//     all u: Usuario, p: Perfil, pst: Post |
-//         (pst in p.publicação and pst.autor = p.dono) or
-//         (pst in p.dono.amizade.publicação and u in p.dono.amizade)
+fact "Postagens pertencem a um perfil ativo" {
+    all pst: Post | one p: Perfil | pst in p.publicação and p.ativo = True
+}
+
+fact "Postagens associadas a usuários ativos" {
+    all pst: Post | pst.autor.ativo = True
+}
+
+// pred usuarioPodeFazerPublicacao[u: Usuario, p: Perfil, pst: Post] {
+//     (pst in p.publicacao and p.dono = u) or
+//     (pst in u.amizade.dono.publicacao)
 // }
 
 
@@ -57,3 +64,12 @@ check UsuariosInativosSemAmizades {
 check UsuarioNaoAmigoDeSiMesmo {
     all u: Usuario | not u in u.amizade
 }
+
+check PostagensEmPerfisAtivos {
+    all pst: Post | one p: Perfil | pst in p.publicação and p.ativo = True
+}
+
+// check "Usuário pode fazer uma publicação em seu perfil ou no perfil de um amigo" {
+//     all u: Usuario, p: Perfil, pst: Post |
+//         usuarioPodeFazerPublicacao[u, p, p, pst]
+// }
