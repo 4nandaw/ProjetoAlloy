@@ -9,7 +9,7 @@ sig Usuario {
 
 sig Perfil {
     dono: one Usuario,
-    post: set Post,
+    publicação: set Post,
     ativo: one Bool
 }
 
@@ -25,4 +25,34 @@ fact "Usuário ativo ou inativo" {
     all u: Usuario | u.ativo = True or u.ativo = False
 }
 
+fact "Perfil ativo ou inativo" {
+    all p: Perfil | p.ativo = True or p.ativo = False
+}
+
+fact "Usuário inativo = Perfis do usuario inativos" {
+    all u: Usuario | u.ativo = False implies all p: Perfil | p.dono = u and p.ativo = False
+}
+
+fact "Todo post está em exatamente um perfil" {
+    all p: Post | one pp: Perfil | p in pp.publicação
+}
+
+fact "Usuários inativos não devem ter amizades" {
+    all u: Usuario | u.ativo = False implies no u.amizade
+}
+
+
+// fact "Um usuário pode publicar um post em seu perfil ou nos perfis de seus amigos" {
+//     all u: Usuario, p: Perfil, pp: Post | (pp in p.post) or (u in p.dono.amizade and pp in p.post)
+// }
+
+
 run {}
+
+check UsuariosInativosSemAmizades {
+    all u: Usuario | u.ativo = False implies no u.amizade
+}
+
+check UsuarioNaoAmigoDeSiMesmo {
+    all u: Usuario | not u in u.amizade
+}
