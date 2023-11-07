@@ -54,3 +54,31 @@ fact "postagens pertencem a um perfil ativo" {
 }
 
 run {} for 3 but exactly 3 Usuario
+
+check todoUsuarioEstaNaRedeSocial {
+    all u: Usuario | u in RedeSocial.user
+}
+
+check usuarioSemAmizadeComEleMesmo {
+    no u: Usuario | u in u.amizade
+}
+
+check todoPostTemUmAutor {
+    all p: Post | one u: Usuario | p in u.autor
+}
+
+check todoPerfilTemUmDono {
+    all p: Perfil | one u: Usuario | u in p.dono
+}
+
+check usuariosPodemPublicarEmPerfisDeAmigos {
+    all u1, u2: Usuario, p: Post | (p.perfil.dono = u1 or u1 in u2.amizade) implies p in u1.autor or p in u2.autor
+}
+
+check usuariosInativosPerfisInativos {
+    all u: Usuario | (u.status_usuario = Inativo) implies (all p: Perfil | p.dono = u implies p.status_perfil = Inativo)
+}
+
+check postagensEmPerfisAtivos {
+    all p: Post | p.perfil.status_perfil = Ativo
+}
