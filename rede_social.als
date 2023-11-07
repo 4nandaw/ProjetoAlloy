@@ -45,6 +45,11 @@ fact "apenas usuários que são amigos podem ter post no perfil um do outro" {
     all p: Post, u1, u2: Usuario | (p.perfil.dono = u1 and u2 in u1.amizade) implies (p in u2.autor)
 }
 
+fact "usuários podem ser autores de posts em seus próprios perfis" {
+    all u: Usuario, p: Post | p.perfil.dono = u implies p in u.autor
+}
+
+
 fact "usuário inativo = Perfis do usuário inativos" {
     all u: Usuario | (u.status_usuario = Inativo) implies (all p: Perfil | p.dono = u implies p.status_perfil = Inativo)
 }
@@ -81,4 +86,8 @@ check usuariosInativosPerfisInativos {
 
 check postagensEmPerfisAtivos {
     all p: Post | p.perfil.status_perfil = Ativo
+}
+
+check usuariosPodemSerAutoresDePostsEmSeusPerfis {
+    all u: Usuario, p: Post | p.perfil.dono = u implies p in u.autor
 }
