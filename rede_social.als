@@ -1,75 +1,56 @@
-open util/boolean
-
-abstract sig RedeSocial {}
+one sig RedeSocial {
+    user: set Usuario
+}
 
 sig Usuario {
+    status_usuario: one Ativo + Inativo,
     amizade: set Usuario,
-    ativo: one Bool
+    autor: set Post
 }
 
 sig Perfil {
-    dono: one Usuario,
-    publicação: set Post,
-    ativo: one Bool
+    status_perfil: one Ativo + Inativo,
+    dono: set Usuario,
 }
 
 sig Post {
-    autor: one Usuario
+    perfil: one Perfil
 }
 
-fact "Usuário sem amizade com ele mesmo" {
+one sig Ativo {}
+one sig Inativo {}
+
+
+fact "todo usuário está na rede social" {
+    all u: Usuario | u in RedeSocial.user
+}
+
+fact "usuário sem amizade com ele mesmo" {
     no u: Usuario | u in u.amizade
 }
 
-fact "Usuário ativo ou inativo" {
-    all u: Usuario | u.ativo = True or u.ativo = False
+fact "todo post tem um autor" {
+    all p: Post | one u: Usuario | p in u.autor
 }
 
-fact "Perfil ativo ou inativo" {
-    all p: Perfil | p.ativo = True or p.ativo = False
+fact "todo perfil tem um dono" {
+    all p: Perfil | one u: Usuario | u in p.dono
 }
 
-fact "Usuário inativo = Perfis do usuario inativos" {
-    all u: Usuario | u.ativo = False implies all p: Perfil | p.dono = u and p.ativo = False
+fact "usuário pode fazer publicações no seu perfil e no de amigos" {
+    all u1, u2: Usuario, p: Post | (p.perfil.dono = u1 or u1 in u2.amizade) implies p in u1.autor or p in u2.autor
 }
 
-fact "Todo post está em exatamente um perfil" {
-    all pst: Post | one p: Perfil | pst in p.publicação
+fact "apenas usuários que são amigos podem ter post no perfil um do outro" {
+    all p: Post, u1, u2: Usuario | (p.perfil.dono = u1 and u2 in u1.amizade) implies (p in u2.autor)
 }
 
-fact "Usuários inativos não devem ter amizades" {
-    all u: Usuario | u.ativo = False implies no u.amizade
+fact "usuário inativo = Perfis do usuário inativos" {
+    all u: Usuario | (u.status_usuario = Inativo) implies (all p: Perfil | p.dono = u implies p.status_perfil = Inativo)
 }
 
-fact "Postagens pertencem a um perfil ativo" {
-    all pst: Post | one p: Perfil | pst in p.publicação and p.ativo = True
+fact "postagens pertencem a um perfil ativo" {
+    all p: Post | p.perfil.status_perfil = Ativo
 }
 
-fact "Postagens associadas a usuários ativos" {
-    all pst: Post | pst.autor.ativo = True
-}
-
-// pred usuarioPodeFazerPublicacao[u: Usuario, p: Perfil, pst: Post] {
-//     (pst in p.publicacao and p.dono = u) or
-//     (pst in u.amizade.dono.publicacao)
-// }
-
-
-run {}
-
-check UsuariosInativosSemAmizades {
-    all u: Usuario | u.ativo = False implies no u.amizade
-}
-
-check UsuarioNaoAmigoDeSiMesmo {
-    all u: Usuario | not u in u.amizade
-}
-
-check PostagensEmPerfisAtivos {
-    all pst: Post | one p: Perfil | pst in p.publicação and p.ativo = True
-}
-
-// check "Usuário pode fazer uma publicação em seu perfil ou no perfil de um amigo" {
-//     all u: Usuario, p: Perfil, pst: Post |
-//         usuarioPodeFazerPublicacao[u, p, p, pst]
-// }
+run {} for 3 but exactly 3 Usuario
