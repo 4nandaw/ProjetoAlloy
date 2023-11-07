@@ -5,6 +5,7 @@ one sig RedeSocial {
 sig Usuario {
     status_usuario: one Ativo + Inativo,
     amizade: set Usuario,
+    ex_amizade: set Usuario,
     autor: set Post
 }
 
@@ -27,6 +28,10 @@ fact "todo usuário está na rede social" {
 
 fact "usuário sem amizade com ele mesmo" {
     no u: Usuario | u in u.amizade
+}
+
+fact "usuário sem ex_amizade com ele mesmo" {
+    no u: Usuario | u in u.ex_amizade
 }
 
 fact "todo post tem um autor" {
@@ -58,6 +63,15 @@ fact "postagens pertencem a um perfil ativo" {
     all p: Post | p.perfil.status_perfil = Ativo
 }
 
+fact "usuário não pode ser amigo e ex-amigo ao mesmo tempo" {
+    all u: Usuario | no u.amizade & u.ex_amizade
+}
+
+fact "amizade e ex_amizade de acordo com o status do usuário" {
+    all u1, u2: Usuario | (u1.status_usuario = Inativo) implies (u1.amizade = u2.ex_amizade)
+    all u1, u2: Usuario | (u1.status_usuario = Ativo and u2.status_usuario = Ativo) implies (u1.amizade = u2.amizade)
+}
+
 run {} for 3 but exactly 3 Usuario
 
 check todoUsuarioEstaNaRedeSocial {
@@ -66,6 +80,10 @@ check todoUsuarioEstaNaRedeSocial {
 
 check usuarioSemAmizadeComEleMesmo {
     no u: Usuario | u in u.amizade
+}
+
+check usuarioSemExAmizadeComEleMesmo {
+    no u: Usuario | u in u.ex_amizade
 }
 
 check todoPostTemUmAutor {
@@ -90,4 +108,9 @@ check postagensEmPerfisAtivos {
 
 check usuariosPodemSerAutoresDePostsEmSeusPerfis {
     all u: Usuario, p: Post | p.perfil.dono = u implies p in u.autor
+}
+
+check amizadeEExAmizadeDeAcordoComStatus {
+    all u1, u2: Usuario | (u1.status_usuario = Inativo) implies (u1.amizade = u2.ex_amizade)
+    all u1, u2: Usuario | (u1.status_usuario = Ativo and u2.status_usuario = Ativo) implies (u1.amizade = u2.amizade) and (u2.amizade = u1.amizade)
 }
